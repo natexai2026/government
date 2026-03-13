@@ -10,29 +10,41 @@ const MapEngine = {
 
     init() {
         this.map = L.map('map', {
-            center: [this.currentLat, this.currentLon],
-            zoom: 4,
+            center: [20, 0],
+            zoom: 3,
             zoomControl: false,
             attributionControl: false,
             minZoom: 2,
-            maxZoom: 18,
-            worldCopyJump: true
+            maxZoom: 19,
+            worldCopyJump: true,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5,
+            wheelPxPerZoomLevel: 120,
+            zoomAnimation: true,
+            markerZoomAnimation: true,
+            inertia: true,
+            inertiaDeceleration: 2000,
+            maxBoundsViscosity: 1.0,
+            maxBounds: [[-85, -Infinity], [85, Infinity]]
         });
 
         // Tile layers - all free, no API key needed
+        // CartoDB dark_all: natively dark-themed, no filter needed
         this.tileLayers.dark = L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            { maxZoom: 19 }
+            'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+            { maxZoom: 20, subdomains: 'abcd' }
         );
 
+        // CartoDB dark with labels only (cleaner at low zoom)
         this.tileLayers.satellite = L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             { maxZoom: 18 }
         );
 
+        // Stamen toner - high contrast black and white
         this.tileLayers.topo = L.tileLayer(
-            'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-            { maxZoom: 17 }
+            'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+            { maxZoom: 20, subdomains: 'abcd' }
         );
 
         this.tileLayers.dark.addTo(this.map);
@@ -73,11 +85,10 @@ const MapEngine = {
         this.tileLayers[name].addTo(this.map);
         this.activeLayer = name;
 
-        // Update filter
+        // Update filter - only satellite needs adjustment, others are natively dark
         if (tilePane) {
             tilePane.className = 'leaflet-tile-pane';
             if (name === 'satellite') tilePane.classList.add('satellite');
-            if (name === 'topo') tilePane.classList.add('topo');
         }
 
         // Update button states
