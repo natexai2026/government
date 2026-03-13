@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G.O.V. // Global Observation Viewport</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/panels.css" />
+    <link rel="stylesheet" href="css/matrix.css" />
+</head>
+<body>
+    <!-- Matrix Rain Canvas -->
+    <canvas id="matrix-rain"></canvas>
+
+    <!-- Scan Lines Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Top Bar -->
+    <header id="top-bar">
+        <div class="top-bar-left">
+            <div class="gov-logo">
+                <span class="logo-bracket">[</span>
+                <span class="logo-text">G.O.V.</span>
+                <span class="logo-bracket">]</span>
+            </div>
+            <span class="logo-subtitle">GLOBAL OBSERVATION VIEWPORT</span>
+        </div>
+        <div class="top-bar-center">
+            <div class="status-indicator online"></div>
+            <span id="system-status">SYSTEM ONLINE</span>
+            <span class="separator">|</span>
+            <span id="datetime"></span>
+            <span class="separator">|</span>
+            <span id="uptime">UPTIME: 00:00:00</span>
+        </div>
+        <div class="top-bar-right">
+            <span class="classification">TOP SECRET // SCI // NOFORN</span>
+            <span class="clearance-badge">CLEARANCE: LEVEL 5</span>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div id="main-container">
+        <!-- Left Sidebar -->
+        <aside id="left-sidebar">
+            <!-- Location Info Panel -->
+            <div class="panel" id="location-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9678;</span>
+                    <span class="panel-title">CURRENT TARGET</span>
+                    <span class="panel-status blink">LIVE</span>
+                </div>
+                <div class="panel-body">
+                    <div class="data-row">
+                        <span class="data-label">LAT:</span>
+                        <span class="data-value" id="current-lat">40.7128</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">LON:</span>
+                        <span class="data-value" id="current-lon">-74.0060</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">LOCATION:</span>
+                        <span class="data-value" id="current-location">NEW YORK CITY, US</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">ZONE:</span>
+                        <span class="data-value" id="current-timezone">UTC-5</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">LOCAL TIME:</span>
+                        <span class="data-value" id="local-time">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Panel -->
+            <div class="panel" id="search-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9906;</span>
+                    <span class="panel-title">NAVIGATE</span>
+                </div>
+                <div class="panel-body">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="ENTER LOCATION..." autocomplete="off" />
+                        <button id="search-btn">&gt;</button>
+                    </div>
+                    <div id="search-results"></div>
+                </div>
+            </div>
+
+            <!-- Weather Panel -->
+            <div class="panel" id="weather-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9729;</span>
+                    <span class="panel-title">WEATHER INTEL</span>
+                    <span class="panel-status blink">LIVE</span>
+                </div>
+                <div class="panel-body">
+                    <div id="weather-content">
+                        <div class="loading-text">ACQUIRING DATA...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threat Level -->
+            <div class="panel" id="threat-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9888;</span>
+                    <span class="panel-title">THREAT ASSESSMENT</span>
+                </div>
+                <div class="panel-body">
+                    <div class="threat-level-display">
+                        <div class="threat-bar">
+                            <div class="threat-fill" id="threat-fill"></div>
+                        </div>
+                        <span class="threat-text" id="threat-text">MODERATE</span>
+                    </div>
+                    <div id="threat-details">
+                        <div class="data-row">
+                            <span class="data-label">SEISMIC:</span>
+                            <span class="data-value threat-low" id="seismic-level">LOW</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">CIVIL UNREST:</span>
+                            <span class="data-value threat-low" id="unrest-level">LOW</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">CYBER:</span>
+                            <span class="data-value threat-moderate" id="cyber-level">MODERATE</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">HEALTH:</span>
+                            <span class="data-value threat-low" id="health-level">LOW</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="panel" id="stats-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9638;</span>
+                    <span class="panel-title">AREA STATISTICS</span>
+                </div>
+                <div class="panel-body">
+                    <div class="data-row">
+                        <span class="data-label">POPULATION:</span>
+                        <span class="data-value" id="population">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">AREA:</span>
+                        <span class="data-value" id="area-size">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">DENSITY:</span>
+                        <span class="data-value" id="density">--</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">COUNTRY:</span>
+                        <span class="data-value" id="country-name">--</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main id="map-wrapper">
+            <div id="map"></div>
+            <!-- Map Overlay HUD -->
+            <div class="map-hud top-left">
+                <span id="zoom-level">ZOOM: 4</span>
+            </div>
+            <div class="map-hud top-right">
+                <div class="map-controls">
+                    <button class="map-ctrl-btn" id="btn-satellite" title="Satellite View">SAT</button>
+                    <button class="map-ctrl-btn active" id="btn-dark" title="Dark View">DRK</button>
+                    <button class="map-ctrl-btn" id="btn-topo" title="Topographic">TOPO</button>
+                </div>
+            </div>
+            <div class="map-hud bottom-left">
+                <span id="mouse-coords">--.--, --.--</span>
+            </div>
+            <div class="map-hud bottom-right">
+                <button class="map-ctrl-btn" id="btn-cctv" title="Toggle CCTV Cameras">
+                    <span class="cam-icon">&#9712;</span> CCTV
+                </button>
+                <button class="map-ctrl-btn" id="btn-grid" title="Toggle Grid">GRID</button>
+            </div>
+            <!-- Crosshair -->
+            <div class="crosshair">
+                <div class="crosshair-h"></div>
+                <div class="crosshair-v"></div>
+                <div class="crosshair-circle"></div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside id="right-sidebar">
+            <!-- News Feed -->
+            <div class="panel" id="news-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9881;</span>
+                    <span class="panel-title">INTELLIGENCE FEED</span>
+                    <span class="panel-status blink">LIVE</span>
+                </div>
+                <div class="panel-body" id="news-feed">
+                    <div class="loading-text">INTERCEPTING TRANSMISSIONS...</div>
+                </div>
+            </div>
+
+            <!-- CCTV Panel -->
+            <div class="panel" id="cctv-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&#9712;</span>
+                    <span class="panel-title">SURVEILLANCE FEED</span>
+                    <span class="panel-status" id="cctv-status">STANDBY</span>
+                </div>
+                <div class="panel-body">
+                    <div id="cctv-grid">
+                        <div class="cctv-placeholder">
+                            <span>SELECT AREA ON MAP TO<br/>LOAD CAMERA FEEDS</span>
+                        </div>
+                    </div>
+                    <div id="cctv-controls" style="display:none;">
+                        <button class="ctrl-btn" id="cctv-prev">&lt; PREV</button>
+                        <span id="cctv-count">0 CAMERAS</span>
+                        <button class="ctrl-btn" id="cctv-next">NEXT &gt;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log / Terminal -->
+            <div class="panel" id="terminal-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">&gt;_</span>
+                    <span class="panel-title">SYSTEM TERMINAL</span>
+                </div>
+                <div class="panel-body">
+                    <div id="terminal-output"></div>
+                    <div class="terminal-input-row">
+                        <span class="terminal-prompt">&gt;</span>
+                        <input type="text" id="terminal-input" placeholder="ENTER COMMAND..." autocomplete="off" />
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- CCTV Fullscreen Modal -->
+    <div id="cctv-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="panel-icon">&#9712;</span>
+                <span class="modal-title">SURVEILLANCE FEED - ENHANCED VIEW</span>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="cctv-fullscreen-frame" src="" allowfullscreen></iframe>
+                <div class="modal-info">
+                    <span id="modal-cam-name">--</span>
+                    <span id="modal-cam-location">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/matrix.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/news.js"></script>
+    <script src="js/cctv.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
